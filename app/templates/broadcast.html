@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Сообщение всем</h3>
+
+{% if error %}
+  <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{% if sent %}
+  <div class="alert alert-success">
+    Рассылка завершена. Всего: <b>{{ total }}</b>, успешно: <b>{{ success }}</b>, ошибок: <b>{{ failed }}</b>.
+  </div>
+{% endif %}
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post" action="/admin/broadcast">
+      <div class="mb-3">
+        <label class="form-label">Текст сообщения</label>
+        <textarea class="form-control" name="message_html" rows="10" placeholder="Можно использовать HTML-теги Telegram, например &lt;b&gt;жирный&lt;/b&gt;" required></textarea>
+      </div>
+      <button class="btn btn-primary">Отправить всем</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

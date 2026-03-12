@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Контент бота</h3>
+<p class="text-muted">Тексты и inline-кнопки редактируются прямо здесь. Для кнопок используйте JSON-массив строк и кнопок.</p>
+<form method="post" action="/admin/content">
+  {% for e in entries %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between mb-2">
+        <b>{{ e.key }}</b>
+        <span class="badge text-bg-secondary">{{ e.kind }}</span>
+      </div>
+      <textarea class="form-control" name="{{ e.key }}" rows="{{ 12 if e.kind == 'json' else 8 }}">{{ e.value }}</textarea>
+    </div>
+  </div>
+  {% endfor %}
+  <button class="btn btn-primary">Сохранить изменения</button>
+</form>
+{% endblock %}

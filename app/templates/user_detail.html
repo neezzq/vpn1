@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Пользователь #{{ user.id }}</h3>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Карточка пользователя</h5>
+        <div><b>tg_id:</b> <code>{{ user.tg_id }}</code></div>
+        <div><b>username:</b> {{ user.username or "" }}</div>
+        <div><b>balance:</b> {{ cents_to_rub_str(user.balance_cents) }} ₽</div>
+        <div><b>referral_code:</b> <code>{{ user.referral_code }}</code></div>
+        <div><b>от кого пришёл:</b> {{ summary.referrer_label }}</div>
+        <div><b>последняя активность:</b> {{ summary.last_activity }}</div>
+        <div><b>платил:</b> {{ summary.paid_status }}</div>
+        <div><b>устройств:</b> {{ summary.device_count }} (активно {{ summary.active_count }}, пауза {{ summary.paused_count }})</div>
+        <div><b>списание:</b> {{ cents_to_rub_str(summary.daily_spend) }} ₽/день</div>
+        <div><b>хватит примерно:</b> {{ summary.days_left }} дней, до {{ summary.end_date }}</div>
+        <div class="mt-2">
+          {% if user.is_banned %}<span class="badge bg-danger">ban</span>{% endif %}
+          {% if user.is_frozen %}<span class="badge bg-warning text-dark">freeze</span>{% endif %}
+          {% if not user.is_banned and not user.is_frozen %}<span class="badge bg-success">ok</span>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <h5 class="mb-2">Изменить баланс</h5>
+        <form method="post" action="/admin/user/{{ user.id }}/topup">
+          <div class="row g-2">
+            <div class="col-md-4">
+              <input class="form-control" name="amount_rub" type="number" placeholder="Сумма ₽" required>
+            </div>
+            <div class="col-md-8">
+              <input class="form-control" name="comment" placeholder="Комментарий (необязательно)">
+            </div>
+          </div>
+          <button class="btn btn-primary mt-2">Применить</button>
+          <div class="text-muted mt-2" style="font-size: 12px;">Это создаст транзакцию типа admin_adjust.</div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <h5 class="mb-2">Статусы пользователя</h5>
+        <div class="d-flex gap-2">
+          <form method="post" action="/admin/user/{{ user.id }}/toggle-freeze">
+            <button class="btn btn-outline-warning">{% if user.is_frozen %}Разморозить{% else %}Заморозить{% endif %}</button>
+          </form>
+          <form method="post" action="/admin/user/{{ user.id }}/toggle-ban">
+            <button class="btn btn-outline-danger">{% if user.is_banned %}Разбанить{% else %}Забанить{% endif %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="mb-2">Сообщение пользователю</h5>
+        <form method="post" action="/admin/user/{{ user.id }}/message">
+          <textarea class="form-control" rows="4" name="message_html" placeholder="Сообщение в HTML/тексте"></textarea>
+          <button class="btn btn-dark mt-2">Отправить</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h4 class="mt-4">Устройства</h4>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Имя</th>
+      <th>Статус</th>
+      <th>Конфиг обновлён</th>
+      <th>Share link</th>
+      <th>Создан</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for k in keys %}
+    <tr>
+      <td>{{ k.id }}</td>
+      <td>{{ k.name }}</td>
+      <td>{{ k.status }}</td>
+      <td>{{ k.last_config_updated_at or "" }}</td>
+      <td><a href="/k/{{ k.share_token }}" target="_blank">/k/{{ k.share_token }}</a></td>
+      <td>{{ k.created_at }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h4 class="mt-4">Транзакции (последние 50)</h4>
+<table class="table table-sm table-hover">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Тип</th>
+      <th>Сумма</th>
+      <th>Дата</th>
+      <th>Meta</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for t in txs %}
+    <tr>
+      <td>{{ t.id }}</td>
+      <td>{{ t.type }}</td>
+      <td>{{ cents_to_rub_str(t.amount_cents) }} ₽</td>
+      <td>{{ t.created_at }}</td>
+      <td><code>{{ t.meta_json or "" }}</code></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

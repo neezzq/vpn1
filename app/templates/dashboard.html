@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-4">Дашборд</h3>
+
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="card shadow-sm"><div class="card-body"><div class="text-muted">Пользователей</div><div class="display-6">{{ users }}</div></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm"><div class="card-body"><div class="text-muted">Платящих</div><div class="display-6">{{ paid_users }}</div></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm"><div class="card-body"><div class="text-muted">Активные ключи</div><div class="display-6">{{ active_keys }}</div></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm"><div class="card-body"><div class="text-muted">Ключи на паузе</div><div class="display-6">{{ paused_keys }}</div></div></div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-md-3">
+    <div class="card shadow-sm"><div class="card-body"><div class="text-muted">Ключи свободные</div><div class="display-6">{{ free_keys }}</div></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm"><div class="card-body"><div class="text-muted">Ключи revoked</div><div class="display-6">{{ revoked_keys }}</div></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm"><div class="card-body"><div class="text-muted">Забаненные</div><div class="display-6">{{ banned_users }}</div></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm"><div class="card-body"><div class="text-muted">Замороженные</div><div class="display-6">{{ frozen_users }}</div></div></div>
+  </div>
+</div>
+{% endblock %}

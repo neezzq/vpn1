@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h3 class="mb-0">Редактирование бота</h3>
+</div>
+
+{% if saved %}
+  <div class="alert alert-success">Настройки бота сохранены.</div>
+{% endif %}
+
+<div class="alert alert-info">
+  Здесь можно менять текст, стиль кнопки и custom emoji ID. Если текущая версия aiogram или клиент Telegram не поддерживают стиль/emoji для inline-кнопки, бот автоматически покажет обычную кнопку с текстом.
+</div>
+
+<form method="post" action="/admin/bot-ui">
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="mb-3">Inline-кнопки</h5>
+          {% for key, label in button_fields %}
+            {% set btn = ui.buttons[key] %}
+            <div class="border rounded p-3 mb-3">
+              <label class="form-label"><b>{{ label }}</b></label>
+              <div class="mb-2">
+                <label class="form-label small text-muted">Текст</label>
+                <input class="form-control" name="btn__{{ key }}__text" value="{{ btn.text }}">
+              </div>
+              <div class="mb-2">
+                <label class="form-label small text-muted">Стиль</label>
+                <select class="form-select" name="btn__{{ key }}__style">
+                  {% for style in button_style_options %}
+                    <option value="{{ style }}" {% if btn.style == style %}selected{% endif %}>{{ style }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="form-label small text-muted">Custom emoji ID</label>
+                <input class="form-control" name="btn__{{ key }}__custom_emoji_id" value="{{ btn.custom_emoji_id }}" placeholder="например 5386654653000000000">
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="mb-3">Сообщения бота</h5>
+          {% for key, label in message_fields %}
+            <div class="mb-4">
+              <label class="form-label"><b>{{ label }}</b></label>
+              <textarea class="form-control" rows="5" name="msg__{{ key }}">{{ ui.messages[key] }}</textarea>
+              {% if placeholders.get(key) %}
+                <div class="form-text">Плейсхолдеры: {% for item in placeholders.get(key) %}<code>{{ "{" ~ item ~ "}" }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 d-flex gap-2">
+    <button class="btn btn-primary">Сохранить</button>
+    <a class="btn btn-outline-secondary" href="/admin/bot-ui">Обновить страницу</a>
+  </div>
+</form>
+{% endblock %}
