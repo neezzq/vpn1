@@ -618,14 +618,15 @@ def build_bot(settings: Settings, SessionLocal) -> tuple[Bot, Dispatcher]:
             )
             session.add(payment)
             session.flush()
-            kb = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text=get_button_config(ui, "open_payment_link").get("text") or "оплатить", url=pay_url)],
-                [_make_inline_button(ui, "check_payment", PaymentActionCb(action="check", payment_id=payment.id).pack())],
-                [_make_inline_button(ui, "main_menu", BotNavCb(screen="menu").pack())],
-            ])
+            rows = [[InlineKeyboardButton(text=get_button_config(ui, "open_payment_link").get("text") or "оплатить", url=pay_url)]]
+            if method != "platega":
+                rows.append([_make_inline_button(ui, "check_payment", PaymentActionCb(action="check", payment_id=payment.id).pack())])
+            rows.append([_make_inline_button(ui, "main_menu", BotNavCb(screen="menu").pack())])
+            kb = InlineKeyboardMarkup(inline_keyboard=rows)
 
+        extra = "\n\nПосле оплаты баланс пополнится автоматически." if method == "platega" else ""
         await message.answer(
-            format_ui_text(ui, "deposit_link", method_name=PAYMENT_METHOD_LABELS.get(method, method), amount=amount_rub, invoice_url=pay_url),
+            format_ui_text(ui, "deposit_link", method_name=PAYMENT_METHOD_LABELS.get(method, method), amount=amount_rub, invoice_url=pay_url) + extra,
             reply_markup=kb,
         )
 

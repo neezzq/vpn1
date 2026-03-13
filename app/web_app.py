@@ -242,6 +242,20 @@ def _toggle_user_state(user_id: int, mode: str) -> None:
         session.add(user)
 
 
+
+
+def _extract_platega_amount_rub(body: dict) -> int | None:
+    raw = body.get("amount")
+    if raw in (None, ""):
+        details = body.get("paymentDetails") or {}
+        if isinstance(details, dict):
+            raw = details.get("amount")
+    try:
+        return int(raw) if raw not in (None, "") else None
+    except (TypeError, ValueError):
+        return None
+
+
 async def _notify_payment_success(tg_id: int, amount_rub: int) -> None:
     bot = Bot(token=settings.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     try:
@@ -321,8 +335,13 @@ async def platega_webhook(secret: str, request: Request):
         payment = session.scalar(select(Payment).where(Payment.external_invoice_id == transaction_id))
         if not payment:
             return PlainTextResponse("ok")
+        callback_amount = _extract_platega_amount_rub(body)
+        if callback_amount is not None and int(callback_amount) != int(payment.amount_rub):
+            return PlainTextResponse("amount mismatch", status_code=400)
         payment.payload_json = json.dumps(body, ensure_ascii=False)
         amount_rub = payment.amount_rub
+        if payment.processed_at:
+            return PlainTextResponse("ok")
         if status == "CONFIRMED":
             payment.status = PaymentStatus.paid
             payment.paid_at = dt.datetime.utcnow()
@@ -339,7 +358,7 @@ async def platega_webhook(secret: str, request: Request):
 
 @app.get("/payments/platega/success", response_class=HTMLResponse, include_in_schema=False)
 def platega_success():
-    return HTMLResponse("<h3>Оплата создана</h3><p>Вернитесь в Telegram и нажмите «Проверить оплату», если баланс не обновился автоматически.</p>")
+    return HTMLResponse("<h3>Оплата создана</h3><p>Вернитесь в Telegram. Баланс пополнится автоматически после подтверждения оплаты.</p>")
 
 
 @app.get("/payments/platega/fail", response_class=HTMLResponse, include_in_schema=False)
